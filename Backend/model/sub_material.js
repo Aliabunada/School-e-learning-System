@@ -1,27 +1,37 @@
 const { ObjectID } = require('bson');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const section = require('./section').Sectionschema
 
 
 const sub_material = Schema({
-    
+    title : {
+        type: String,
+        required: true
+    },
+    description: {
+        type: String,
+        required: true
+    },
     teacherID :{
         type: ObjectID,
         required: true
     },
-    sectionID :{
-        type: section,
+    SubjectId:{
+        type: ObjectID,
+        required : true
+    },
+    classRoom :{
+        type: ObjectID,
         required: true
     },
     material :{
-        type: String,
-        required: true
-    },
-    levelId :{
-        type: ObjectID,
-        
-    },
+        url : {
+            type : String,
+        },
+        file : {
+            type : String,
+        }
+    }
    
 })
 const sub_material_model = mongoose.model('sub_material_model', sub_material);

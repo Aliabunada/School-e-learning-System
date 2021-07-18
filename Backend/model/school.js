@@ -1,13 +1,10 @@
 const mongoose = require('mongoose');
 const manager =require('./employee').employeeschema
 const Schema = mongoose.Schema;
+const { ObjectID } = require('bson');
 
 const School = Schema({
     school_Name :{
-        type: String,
-        required: true
-    },
-    city :{
         type: String,
         required: true
     },
@@ -16,8 +13,9 @@ const School = Schema({
         required: true
     },
     managerId :{
-        type: mongoose.Schema.ObjectId,
-        ref: 'employee_model',
+        // type: mongoose.Schema.ObjectId,
+        // ref: 'employee_model',
+        type : ObjectID,
         required: true
     },
     phone_number :{

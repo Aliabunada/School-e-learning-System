@@ -1,4 +1,4 @@
-const Subject = require('../model/subject').Subject_model;
+const Subject = require('../model/subject');
 const Permissions = require('../model/permission').permissions_model;
 const validUrl = require('valid-url');
 
@@ -25,6 +25,11 @@ const subject_index = (req,res) => {
     res.send('Subjects Index Page');
 };
 
+const subjectsListName = (req,res) => {
+    
+    res.status(200).send({SubjectList:Subject.subjects});
+};
+
 const subject_create = (req,res) => {
     res.render('index.html');
 };
@@ -33,7 +38,7 @@ const subject_UploadMaterial = async (req,res) => {
     const {subject_name, subject, level} = req.body;
     try{
         if (validUrl.isUri(subject)){
-            const newSubject = await Subject.create({ subjectName: subject_name, subject: subject, level: level });
+            const newSubject = await Subject.Subject_model.create({ subjectName: subject_name, subject: subject, level: level });
             res.status(201).json({ newSubject: newSubject._id });
         } else {
             res.status(400).send({ error: "Please check the URL again" })
@@ -100,5 +105,5 @@ const subject_delete = async (req,res) => {
 
 
 module.exports = {
-    subject_index, subject_create, subject_UploadMaterial, subject_edit, subject_update, subject_delete
+    subject_index, subject_create, subject_UploadMaterial, subject_edit, subject_update, subject_delete,subjectsListName
 };

@@ -8,7 +8,7 @@ const Mark = Schema({
         type: ObjectID,
         required: true
     },
-    subjectID :{
+    classRoom :{
         type: ObjectID,
         required: true
     },

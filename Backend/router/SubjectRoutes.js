@@ -28,6 +28,8 @@ const upload = multer({
 
 router.get('/', subjectController.subject_index);
 
+router.get('/getSubjectListName', subjectController.subjectsListName);
+
 router.get('/create', subjectController.subject_create);
 
 router.post('/uploadLinkFile', subjectController.subject_UploadMaterial)

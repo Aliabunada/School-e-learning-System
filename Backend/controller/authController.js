@@ -2,30 +2,32 @@ const User = require('../model/user');
 const School = require('../model/school').Schoolmode;
 const Role = require('../model/role').role_model;
 const Permissions = require('../model/permission').permissions_model;
+const EmployeeModal = require('../model/employee').employee_model;
+var notUndefinedNotNull = require('../helper/classfun').notUndefinedNotNull
 const jwt = require('jsonwebtoken');
 
 const handleError = (err) => {
     const errors = { email: '', password: '' };
 
     // Incorrect Email When Login
-    if(err.message === 'Incorrect Email') {
+    if (err.message === 'Incorrect Email') {
         errors.email = 'The email is not registered';
     }
 
     // Incorrect Password When Login
-    if(err.message === 'Wrong Password') {
+    if (err.message === 'Wrong Password') {
         errors.password = 'The password is incorrect';
     }
 
     // Duplicate error code
-    if(err.code === 11000) {
+    if (err.code === 11000) {
         errors.email = 'Already Exist';
         return errors;
     }
 
     // Validations Errors
-    if(err.message.includes('user validation failed')) {
-        Object.values(err.errors).forEach(({properties}) => {
+    if (err.message.includes('user validation failed')) {
+        Object.values(err.errors).forEach(({ properties }) => {
             errors[properties.path] = properties.message;
         });
     }
@@ -41,125 +43,118 @@ const createToken = (id) => {
     });
 };
 
-const auth_singup = (req,res) => {
-    // res.render('signup');
-    return 'signup';
+const auth_singup = (req, res) => {
+    res.status(200).send("helll")
+    // return 'signup';
 };
 
-const auth_login = (req,res) => {
+const auth_login = (req, res) => {
     res.send('Login View');
 };
+// add if the db has school is  convert to dashboard directly or login page
+const auth_signup_post = async (req, res) => {
+    var Id = {}
+    return User.findOne({ userID: req.body.identification_number })
+        .then(async function (admin) {
+            if (notUndefinedNotNull(admin)) {
+                res.status(400).send('The User was Existed');
+            }
+            else {
+                console.log(req.body);
+                const { identification_number, full_name_ar, full_name_en, date_Of_birth, gender, email, job_Number, address, phone_number, password, school_Name, ministry } = req.body;
+                const permission = new Permissions({ edit_employees: true, edit_students: true, edit_parents: true, add_subjects: true, edit_classRoom: true, manage_classRoom: true })
+                return permission.save()
+                    .then(async function (permission) {
+                        Id.permission_id = permission._id;
+                        const role = new Role({ name: "Admin", permissions_id: permission._id })
+                        return await role.save()
+                            .then(async function (role) {
+                                Id.role_id = role._id;
+                                const user = new User({ email: email, password: password, userID: identification_number, username: full_name_ar, role_Id: role._id })
+                                return await user.save()
+                                    .then(async function (user) {
+                                        Id.user_id = user._id;
+                                        const newEmploye = new EmployeeModal({ identification_number, full_name_ar, full_name_en, job_Number, gender, address, date_Of_birth, phone: phone_number })
+                                        return newEmploye.save()
+                                            .then(async function (doc) {
+                                                Id.emoloyee_id = doc._id;
+                                                const school = new School({ school_Name, ministry, phone_number, managerId: doc._id });
+                                                return school.save()
+                                                    .then(async function (school) {
+                                                        const token = createToken(user._id);
+                                                        res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 })
+                                                        res.status(201).json({ manager: Id.emoloyee_id })
+                                                    })
+                                            })
 
-const auth_signup_post = async (req,res) => {
-    
-    const { email, password, identification_number, school_Name, city, ministry, phone_number, job_Number } = req.body;
-    console.log(req.body);
-    const permission = new Permissions({ edit_employees: true, edit_students: true, edit_parents: true, edit_sections: true, edit_materials: true })
-    return permission.save()
-        .then((permission) => {
-            const role = new Role({ name: "Admin", permissions_id: permission._id })
-           return role.save()
-                .then((role) => {
-                    const user = new User({ email, password, username: identification_number, role_Id: role._id })
-                   return user.save()
-                        .then((user) => {
-                            const school = new School({ school_Name, city, ministry, phone_number, managerId: user._id });
-                          return  school.save()
-                                .then((school) => {
-                                    const token = createToken(user._id);
-                                    res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 })
-                                    res.status(201).json({ user: user._id })
-                                }).catch(err => {
-                                     User.deleteOne({ _id: user._id });
-                                    const errors = handleError(err);
-                                        console.log('eer')
-                                    res.status(400).json({ errors });
-                                                                    
-                                })
-                        }).catch(err => {
-                             Permissions.deleteOne({ _id: permission._id })
-                             .then(()=>{
-                                Role.deleteOne({ _id: role._id })
-                                .then(()=>{
-                                    const errors = handleError(err);
-                                    console.log('eer')
-                                    res.status(400).json({ errors });
-                                })
-                             }).catch(()=>{
-                                res.send({error:new Error('Permissions didn`t deleted')})
-                             })
-                            
-                        })
-                })
-        }).catch(err => {
-            const errors = handleError(err);
-            res.status(400).send('test error');
-            
+                                    })
+                            })
+                    }).catch(async function (err) {
+                        console.dir(err)
+                        if (notUndefinedNotNull(Id.user_id)) {
+                            await User.deleteOne({ _id: Id.user_id }).exec();
+                        }
+                        if (notUndefinedNotNull(Id.permission_id)) {
+                            await Permissions.deleteOne({ _id: Id.permission_id }).exec();
+                        }
+                        if (notUndefinedNotNull(Id.role_id)) {
+                            await Role.deleteOne({ _id: Id.role_id }).exec();
+                        }
+                        if (notUndefinedNotNull(Id.emoloyee_id)) {
+                            await EmployeeModal.deleteOne({ _id: Id.emoloyee_id })
+                        }
+                        const errors = handleError(err);
+                        res.status(400).send('Failed Insert New School');
+
+                    })
+
+            }
         })
-    // const role = await new Role.create({name: "Admin", permissions_id: permission._id});
-    
-    // try{
-    //     const user = await new User.create({ email, password, username: identification_number, role_Id: role._id });
-    //     try {
-    //         const school = await new School.create({ school_Name, city, ministry, phone_number, managerId: user._id });
-    //         const token = createToken(user._id);
-    //         res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-    //         res.status(201).json({ user: user._id });
-    //     } catch(err) {
-    //         await User.deleteOne({ _id: user._id });
-    //         const errors = handleError(err);
-    //         res.status(400).json({errors});
-    //     }
-    // } catch(err) {
-    //     await Permissions.deleteOne({ _id: permission._id });
-    //     await Role.deleteOne({ _id: role._id });
-    //     const errors = handleError(err);
-    //     res.status(400).json({errors});
-    // }
+
+
 };
 
-const auth_login_post = async (req,res) => {
-    const {username, password} = req.body;
-    
-    if(validateEmail(username)) {
+const auth_login_post = async (req, res) => {
+    const { username, password } = req.body;
+
+    if (validateEmail(username)) {
         try {
             const user = await User.loginUseEmail(username, password);
             const token = createToken(user._id);
             res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
             res.status(201).json({ user: user._id });
-        } 
-        catch(err) {
-            const errors = handleError(err);
-            res.status(400).json({errors});
         }
-    } else if (!isNaN(username)){
+        catch (err) {
+            const errors = handleError(err);
+            res.status(400).json({ errors });
+        }
+    } else if (!isNaN(username)) {
         try {
             const user = await User.loginUsID(username, password);
             const token = createToken(user._id);
             res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
             res.status(201).json({ user: user._id });
-        } 
-        catch(err) {
+        }
+        catch (err) {
             const errors = handleError(err);
-            res.status(400).json({errors});
+            res.status(400).json({ errors });
         }
     } else {
         res.send('Unnone');
     }
 };
 
-const auth_logout = (req,res) => {
+const auth_logout = (req, res) => {
     res.cookie('jwt', '', { maxAge: 1 });
     res.redirect('/');
 };
 
-function validateEmail(email) 
-{
-        var re = /\S+@\S+\.\S+/;
-        return re.test(email);
+function validateEmail(email) {
+    var re = /\S+@\S+\.\S+/;
+    return re.test(email);
 }
 
-const validate = (req,res) => {
+const validate = (req, res) => {
     console.log(validateEmail('anystring@anystring.'));
 };
 

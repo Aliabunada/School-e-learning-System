@@ -1,24 +1,35 @@
 const { ObjectID } = require('bson');
 const mongoose = require('mongoose');
 const teacher =require('./employee').employeeschema
-const section = require('./section').Sectionschema
+const section = require('./classRoom').Sectionschema
 
 const Schema = mongoose.Schema;
 
 const Section_tutorial = Schema({
     
     material :{
-        type: String,
-        required: true
+           
+                        url : {
+                            type : String,
+                        },
+                        video : {
+                            type : String,
+                        }
+                    
+        
     },
     teacherId :{
         type: teacher,
         required: true
     },
-    sectionId :{
-        type: section,
-        required: true
+    SubjectId:{
+        type:ObjectID,
+        required : true
     },
+    classRoom :[{
+        type: ObjectID,
+        required: true
+    }],
     created_Date :{
         type: Date,
         required: true

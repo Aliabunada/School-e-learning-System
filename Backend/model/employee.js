@@ -16,10 +16,7 @@ const employee = Schema({
         type: String,
        
     },
-    role :{
-        type: role,
-     
-    },
+    // the roles in the user
     job_Number :{
         type: Number,
         required: true
@@ -30,23 +27,22 @@ const employee = Schema({
     },
     social_Status :{
         type: String,
-        required: true
+        // required: true
     },
     address :{
         type: String,
-        required: true
+        // required: true
     },
     date_Of_birth :{
         type: Date,
-        required: true
+        // required: true
     },
     phone :{
         type: Number,
-        required: true
+        // required: true
     },
     teaching_Subject :{
         type: String,
-        required: true
     },
 
    

@@ -1,4 +1,5 @@
 const express = require("express");
+var app = express();
 const cors = require('cors');
 const dotenv = require('dotenv').config()
 var path = require('path');
@@ -10,7 +11,11 @@ const RoleRoutes = require('../router/RoleRoutes');
 const SubjectRoutes = require('../router/SubjectRoutes');
 const EmployeeRoutes = require('../router/EmployeeRoutes');
 const studenteeRoutes = require('../router/studentRoutes');
-var app = express();
+const classRouters = require('../router/classRouters');
+const classRoomRoutes = require('../router/ClassRoomRoutes');
+const classRoomTutorialRoutes = require('../router/ClassRoomTutorialRoutes');
+const SubMaterialRoutes = require('../router/SubMaterialRoutes');
+var morgan = require('morgan')
 
 
 // connecting DB
@@ -22,26 +27,20 @@ mongoose.connection.once('open', function () {
 });
 
 //Middleware
+app.use(morgan('dev'));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());  // to recive data as objects or arrays from front
+app.use(cors()); // to connect frontend with backend
 
-// to run react from server after build react app
-app.use(express.static(path.join(__dirname,"../../online-school-system/public")));
-app.get('/*', function (req, res) {
-  res.sendFile(path.resolve(__dirname, '../../online-school-system/public', 'index.html'));
-});
+// Have Node serve the files for our built React app
+app.use(express.static(path.join(__dirname,"../../online-school-system/build")));
 
-// app.get('/*', function (req, res) {
-//   res.sendFile(path.join(__dirname, '../../blog/build', 'index.html'));
-// });
-// cors
-app.use(cors());         // to connect frontend with backend
-app.use(express.json());      // to recive data as objects or arrays from front
-// app.use(express.static('public'));
-app.use(methodOverride('_method'));
+// app.use(express.static('publi  c'));
 
 //body-parser
 // app.use(express.urlencoded()); 
 
-app.use(AuthRoutes);
+app.use('/',AuthRoutes);
 
 app.use('/role', RoleRoutes);
 
@@ -51,11 +50,26 @@ app.use('/employee', EmployeeRoutes);
 
 app.use('/students', studenteeRoutes);
 
-app.post('/hi',function(req,res){
-  console.log(req.body,'req.body')
-  res.status(404)
-})
+app.use('/classes', classRouters);
 
+app.use('/classRoom', classRoomRoutes);
+
+app.use('/tutorial', classRoomTutorialRoutes);
+
+app.use('/subMaterial', SubMaterialRoutes);
+
+app.get('/hhh',(req,res,next)=>{console.dir("testget"); next();},async function(req,res){
+  console.log('hhhh');
+  res.status(200).json({data:'hi'})
+}),
+
+
+app.use(methodOverride('_method'));
+
+// All other GET requests not handled before will return our React app
+app.get('/*', function (req, res) {
+  res.sendFile(path.resolve(__dirname, '../../online-school-system/build', 'index.html'));
+});
 
 let port = process.env.PORT || 8000;
 app.listen(port, () => console.log(`work on ${port}`));

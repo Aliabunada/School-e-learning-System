@@ -15,15 +15,22 @@ const permissions = Schema({
         type: Boolean,
         required: [true, 'Please set edit parents value'],
     },
-    edit_sections: {
+    add_subjects :{
         type: Boolean,
-        required: [true, 'Please set edit sections value'],
+        required: [true, 'Please set add subjects value'],
     },
-    edit_materials: {
+    edit_classRoom: {
         type: Boolean,
-        required: [true, 'Please set edit materials value'],
+        required: [true, 'Please set edit classRoom value'],
+    },
+    manage_classRoom: {
+        type: Boolean,
+        required: [true, 'Please set manage classRoom value'],
     },
 })
 const permissions_model = mongoose.model('permissions_model', permissions);
 exports.permissions_model = permissions_model
 exports.permissionschema = permissions;
+
+
+// need to update

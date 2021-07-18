@@ -8,14 +8,16 @@ const user = Schema({
     
     email :{
         type: String,
-        required: true,
         validate: [isEmail, 'Please enter a valid email']
     },
     username :{
         type: String,
-        required: true,
         unique: true,
         lowercase: true,
+    },
+    userID :{
+        type: String,
+        unique: true,
     },
     password :{
         type: String,

@@ -8,10 +8,11 @@ const Schema = mongoose.Schema;
 const Studentschema = Schema({
     identification_number :{
         type: Number,
-        required: true
+        required: true,
+        unique : true
     },
-    parent :{
-        type:  parent,
+    parent_id :{
+        type:  ObjectID,
     },
     full_name_ar :{
         type: String,
@@ -19,7 +20,6 @@ const Studentschema = Schema({
     },
     full_name_en :{
         type: String,
-        required: true
     },
     phone_number :{
         type: Number,
@@ -34,7 +34,7 @@ const Studentschema = Schema({
         require:true
     },
     classforignkey:{
-        type: classschema,
+        type: ObjectID,
     },
     address :{
         type: String,
